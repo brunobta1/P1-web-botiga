@@ -1,0 +1,14 @@
+Dades del client:
+Nom: Bruno NIF: 41414141F Telefon: 123123123
+==================================================
+Elements totals: 2
+Import total: 250€
+
+Producte 1:
+Logitech G213 Prodigy teclat gaming rgb black
+Unitats: 1 Preu Unitari: 84€      Total: 84€
+
+Producte 2:
+Logitech G915 LIGHTSPEED teclat mecanic inalambric RGB black
+Unitats: 1 Preu Unitari: 166€      Total: 166€
+
