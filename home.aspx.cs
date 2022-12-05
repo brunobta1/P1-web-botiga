@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.EnterpriseServices;
 using System.IO;
@@ -17,20 +17,22 @@ namespace Projecte_1
 {
     public partial class WebForm1 : System.Web.UI.Page
     {
-        //private static String[][] carret = new String[50][];
 
         protected void Page_Load(object sender, EventArgs e)
         {
             if(Request.Cookies.Count == 1)
             {
+                //Si nomes hi ha un producte al carret haura de dir producte en singular
                 totalproductes.InnerText = Request.Cookies.Count + " producte";
 
             }
             else
             {
+                //Si hi ha mes de un producte haura de dir productes
                 totalproductes.InnerText = Request.Cookies.Count + " productes";
             }
 
+            //Aquesta linia fa que al fer clic a un botó la pagina torni a la posició en que estava
             Page.MaintainScrollPositionOnPostBack = true;
 
             int cont = 0;
@@ -44,29 +46,38 @@ namespace Projecte_1
             {
                 //Per cada fitxer txt del directori
 
+                //Si encara no hem agafat 4 productes agafara un altre
                 if (cont < 4)
                 {
                     //Nom del fitxer
                     string nom = file.Name;
 
+                    //Nom del fitxer sense ".txt"
                     string nomsimple = nom.Substring(0, nom.Length - 4);
+
+                    //Tots els arxius tenen un nom que comença per la lletra p i un numero identificatiu.
+                    //Amb aquesta linia treiem la p per quedar-nos amb el numero.
                     int num = Convert.ToInt32(nomsimple.Substring(1, nomsimple.Length-1));
 
+                    //La carpeta on hi ha els productes
                     string ruta = Server.MapPath(".") + "/productes/";
 
+                    //Treiem el contingut de l'arxiu en la variable text
                     string text = System.IO.File.ReadAllText(ruta + nom);
 
+                    //Afegim ".jpg" al final per obtenir la imatge del producte
                     string nomimg = nom.Substring(0, nom.Length - 4) + ".jpg";
 
                     
 
                     if(File.Exists(ruta + nomimg))
                     {
-                        //Si existeix una foto de producte
+                        //Si existeix una imatge de producte fara el seguent
 
                             //Separar la linia pel caracter ; i obtenir totes les dades de l'array
                             string[] arraydades = text.Split(';');
 
+                            //Amb la seguent linia es comprova que no hi hagi els camps correctes
                             if (arraydades.Length == 4)
                             {
                             //Agafem dades del array
@@ -75,6 +86,7 @@ namespace Projecte_1
                             string textdesc = arraydades[2];
                             string textpreu = arraydades[3];
 
+                                //Amb la seguent linia comprovem que cap camp estigui buit
                                 if (textmarca.Length > 0 && textmodel.Length > 0 && textdesc.Length > 0 && textpreu.Length > 0)
                                 {
                                     //Augmentem el contador de productes
@@ -158,15 +170,6 @@ namespace Projecte_1
                                     conf.Text = "Afegir al carret";
                                     producte.Controls.Add(conf);
 
-                                    /*
-                                    Label error = new Label();
-                                    error.Text = "Especifica una quantitat per afegir el producte al carret";
-                                    error.ID = "error" + cont;
-                                    error.Visible = false;
-                                    error.CssClass = "error";
-                                    producte.Controls.Add(error);
-                                    */
-
                                     //Crear div dades
                                     System.Web.UI.HtmlControls.HtmlGenericControl dades = new System.Web.UI.HtmlControls.HtmlGenericControl("DIV");
                                     dades.Attributes["class"] = "dades";
@@ -218,6 +221,7 @@ namespace Projecte_1
 
             }
 
+            //Si no s'ha trobat cap producte o cap es correcte
             if(cont == 0)
             {
                 //Mostrar missatge de que no hi ha productes
@@ -230,6 +234,7 @@ namespace Projecte_1
 
         protected void Sumar(object sender, EventArgs e)
         {
+            //Sumem una unitat al textbox amb la quantitat
             Button btn1 = sender as Button;
             String idboto = btn1.ID;
             int num = Convert.ToInt32(idboto.Split('_').Last());
@@ -241,6 +246,7 @@ namespace Projecte_1
 
         protected void Restar(object sender, EventArgs e)
         {
+            //Restem una unitat al textbox amb la quantitat
             Button btn2 = sender as Button;
             String idboto = btn2.ID;
             int num = Convert.ToInt32(idboto.Split('_').Last());
@@ -248,6 +254,7 @@ namespace Projecte_1
 
             TextBox tb2 = (TextBox)Page.FindControl(textbox);
             int valor = Convert.ToInt32(tb2.Text);
+            //No es permeten valors negatius, per tant nomes restarem si el valor del textbox es més gran que zero
             if(valor > 0)
             {
                 tb2.Text = ((Convert.ToInt32(tb2.Text)) + -1).ToString();
@@ -261,6 +268,7 @@ namespace Projecte_1
 
         protected void Confirmar(object sender, EventArgs e)
         {
+            //Obtenim la id dels elements del producte agafant el numero del botó, que és el mateix que el dels altres elements
             Button conf = sender as Button;
             String idboto = conf.ID;
             int num = Convert.ToInt32(idboto.Split('_').Last());
@@ -296,36 +304,13 @@ namespace Projecte_1
                 String imatge = "productes/p" + num + ".jpg";
 
 
-                
-
-
-                //string[] producte = {marca, model, desc, preu.ToString(), qnt.ToString()};
-
-                //String stringprod = marca + ";" + model + ";" + desc + ";" + preu.ToString() + ";" + qnt.ToString() + ",";
-
-                /*
-                string[][] carret;
-
-                if (Session["carret"] == null)
-                {
-                    carret = new string[50][];
-                    carret[0] = producte;
-                    Session["carret"] = carret;
-                }
-                else if (Session["carret"] != null)
-                {
-                    carret = (string[][])Session["carret"];
-                    int index = Array.FindIndex(carret, i => i == null);
-                    carret[index] = producte;
-                    Session["carret"] = carret;
-
-                    prova.Text = carret[0][1];
-                }
-                
-                */
-
+                //El nom de la cookie sera la marca i el model del producte tot junt
                 String nomcookie = marca + model;
+
+                //Obtenim el nombre de cookies que hi ha guardades
                 int contcookies = Request.Cookies.Count;
+
+                //Creem la cookie
                 HttpCookie cookie = Request.Cookies[nomcookie];
                 if (cookie == null)
                 {
@@ -349,13 +334,11 @@ namespace Projecte_1
 
                     contcookies++;
 
-
-
-
                 } else if (cookie != null)
                 {
                     //Ja existeix un producte a les cookies
 
+                    //Hem de sumar la quantitat perque el proucte ja existeix al carret
                     int novaqnt = Convert.ToInt32(cookie.Values.Get("qnt")) + qnt;
 
                     //Hem de afegir el producte en una nova cookie
@@ -381,6 +364,7 @@ namespace Projecte_1
 
                 }
 
+
                     if (contcookies == 1)
                     {
                         totalproductes.InnerText = contcookies + " producte";
@@ -394,8 +378,10 @@ namespace Projecte_1
                 
 
             }
+
             else if(qnt == 0)
             {
+                //Si al fer clic al botó de confirmar la quantitat del producte és 0 sortirà una alerta de que ha de seleccionar una quantitat
                 ClientScript.RegisterStartupScript(this.GetType(), "Alerta", "alert('" + "Selecciona una quantitat per afegir el producte al carret de la compra" + "');", true);
 
             }
