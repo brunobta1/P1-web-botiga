@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Drawing;
@@ -20,11 +20,11 @@ namespace Projecte_1
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            //Aquesta linia fa que al fer clic a un botó la pagina torni a la posició en que estava
             Page.MaintainScrollPositionOnPostBack = true;
 
             //Ficar el numero de elements trobats a les cookies
             numelements.Text = "Elements: " + (Request.Cookies.Count);
-
             totalelements.Text = Request.Cookies.Count + " elements";
 
             //Crear taula i capçalera amb titols
@@ -56,11 +56,13 @@ namespace Projecte_1
             hc4.Text = "Total";
             thr.Controls.Add(hc4);
 
+            //Inicialitzem contadors a zero
             totalpreu.Text = "0";
             int totalcarret = 0;
             int elementstotals = 0;
             if (Request.Cookies.Count == 0)
             {
+                //Si no hi ha cap producte al carret s'amaga la taula i es fa visible el missatge que indica que el carret esta buit
                 carret.Visible = false;
                 carretbuit.Visible = true;
             }
@@ -69,7 +71,7 @@ namespace Projecte_1
                 
                 for (int i = 0; i < Request.Cookies.Count; i++)
                 {
-                    //Per cada producte que troba a les cookies
+                    //Per cada producte que troba a les cookies agafem tots els atributs
                     String marca = Request.Cookies[i].Values.Get("marca");
                     String model = Request.Cookies[i].Values.Get("model");
                     String desc = Request.Cookies[i].Values.Get("desc");
@@ -77,6 +79,7 @@ namespace Projecte_1
                     int qnt = Convert.ToInt32(Request.Cookies[i].Values.Get("qnt"));
                     int num = Convert.ToInt32(Request.Cookies[i].Values.Get("num"));
                     String nomimg = Request.Cookies[i].Values.Get("imatge");
+                    //Calcular preu total multiplicant el preu unitari pel nombre de elements
                     int preutotal = preu * qnt;
                     elementstotals = elementstotals + qnt;
 
@@ -195,10 +198,13 @@ namespace Projecte_1
                     lblpreutotal.ID = "preutotal_" + num;
                     cellpreutotal.Controls.Add(lblpreutotal);
 
+                    //Sumem el preu total del carret 
                     totalcarret = totalcarret + preutotal;
 
                 }
+                    //Actualitzem el nombre de elements totals del carret.
                     totalelements.Text = elementstotals + " elements";
+                    //Actualitzem el preu total del carret.
                     totalpreu.Text = totalcarret + "€";
             }
             
@@ -212,33 +218,41 @@ namespace Projecte_1
             String idboto = conf.ID;
             int num = Convert.ToInt32(idboto.Split('_').Last());
 
+            //Mirem amb un bucle quina es la cookie que es vol eliminar amb el numero del boto, que ha de coincidir amb una cookie
             for (int i = 0; i < Request.Cookies.Count; i++)
             {
                 int numprod = Convert.ToInt32(Request.Cookies[i].Values.Get("num"));
                 if (numprod == num)
                 {
+                    //Obtenim el nom de la cookie
                     string nomcookie = Request.Cookies[i].Name;
+                    //Eliminem la cookie
                     Response.Cookies[nomcookie].Expires = DateTime.Now.AddDays(-1);
                 }
             }
+            //Refresquem la pagina per forçar la actualització
             Page.Response.Redirect("carret.aspx");
         }
 
         
         protected void Comanda(object sender, EventArgs e)
         {
+            //Quan es prem el botó de fer la comanda es fa visible el formulari per escriure les dades del client
             dadesclient.Visible = true;
         }
         
 
         protected void Confirma(object sender, EventArgs e)
         {
+            //Al clicar a confirmar hem de actualitzar la quantitat
+
+            //Agafem el numero
             Button btn = sender as Button;
             String idboto = btn.ID;
             int num = Convert.ToInt32(idboto.Split('_').Last());
             String textbox = "qnt_producte_" + num;
 
-            //quantitat nova
+            //Quantitat del producte
             TextBox tb2 = (TextBox)Page.FindControl(textbox);
             string valor = tb2.Text;
 
@@ -251,6 +265,7 @@ namespace Projecte_1
             string imatge = "";
             int qnt = 0;
 
+            //Agafar els valors de cada cookie
             for (int i=0; i < Request.Cookies.Count; i++)
             {
                 int numcookie = Convert.ToInt32(Request.Cookies[i].Values.Get("num"));
@@ -285,6 +300,7 @@ namespace Projecte_1
             //Afegir la cookie al client
             Response.Cookies.Add(prod);
 
+            //Actualitzar la pagina
             Response.Redirect("carret.aspx");
 
         }
@@ -296,6 +312,7 @@ namespace Projecte_1
 
         protected void crearComanda(object sender, EventArgs e)
         {
+            //Si algun camp del formulari no es valid es fa visible el missatge de error
             if (nif.Text.Equals(""))
             {
                 errornif.Visible = true;
@@ -322,28 +339,30 @@ namespace Projecte_1
                 errortel.Visible = false;
             }
 
+            //Si tots son valids...
             if (!nif.Text.Equals("") && !nom.Text.Equals("") && !telf.Text.Equals(""))
             {
+                //Obtenim la data
                 DateTime data = DateTime.Now;
+
+                //El nom que tindra el fitxer de la comanda
                 string nomarxiu = Server.MapPath(".") + "/Comandes/" + nif.Text + "_" + data.Year + data.Month + data.Day + ".txt";
                 if (File.Exists(nomarxiu))
                 {
-                    //Ha fet una comanda
+                    //Ha fet una comanda, hem de afegir _2 al nom del arxiu per distingir-lo de la primera comanda
                     
 
                     string nomarxiu2 = nomarxiu.Substring(0, nomarxiu.Length-4) + "_2.txt";
-                    
-
-
-
+     
                     if (File.Exists(nomarxiu2))
                     {
-                        //Ha fet dues comandes
+                        //Ha fet dues comandes, avisarem que no pot fer mes de 2 comandes al dia
                         comandacorrecta.Visible = false;
                         errorcomanda.Visible = true;
                     }
                     else
                     {
+                        //Si ha fet una comanda avui crearem la comanda amb el nou nom
                         errorcomanda.Visible = false;
                         using (StreamWriter sw = File.CreateText(nomarxiu2))
                         {
@@ -352,6 +371,7 @@ namespace Projecte_1
                             sw.WriteLine("Nom: " + nom.Text + " NIF: " + nif.Text + " Telefon: " + telf.Text);
                             sw.WriteLine("==================================================");
                             sw.WriteLine("Elements totals: " + Request.Cookies.Count);
+                            //Recorrer tots els productes del carret per obtenir el preu
                             for (int i = 0; i < Request.Cookies.Count; i++)
                             {
                                 int qnt = Convert.ToInt32(Request.Cookies[i].Values.Get("qnt"));
@@ -362,6 +382,7 @@ namespace Projecte_1
                             }
                             sw.WriteLine("Import total: " + importtotal + "€\n");
 
+                            //Recorrer tots els productes del carret per escriure les dades
                             for (int i = 0; i < Request.Cookies.Count; i++)
                             {
 
@@ -380,13 +401,14 @@ namespace Projecte_1
                         }
                         comandacorrecta.Visible = true;
                     }
+                    //Netejem els quadres de text del formulari
                     nif.Text = "";
                     nom.Text = "";
                     telf.Text = "";
                 }
                 else
                 {
-                    //No ha fet cap comanda
+                    //No ha fet cap comanda avui
                     errorcomanda.Visible = false;
                     using (StreamWriter sw = File.CreateText(nomarxiu)) {
                         int importtotal = 0;
@@ -394,6 +416,7 @@ namespace Projecte_1
                         sw.WriteLine("Nom: " + nom.Text + " NIF: " + nif.Text + " Telefon: " + telf.Text);
                         sw.WriteLine("==================================================");
                         sw.WriteLine("Elements totals: " + Request.Cookies.Count);
+                        //Obtenir preu total
                         for (int i = 0; i < Request.Cookies.Count; i++)
                         {
                             int qnt = Convert.ToInt32(Request.Cookies[i].Values.Get("qnt"));
@@ -404,6 +427,7 @@ namespace Projecte_1
                         }
                         sw.WriteLine("Import total: " + importtotal + "€\n");
 
+                        //Escriure productes
                         for (int i = 0; i < Request.Cookies.Count; i++)
                         {
 
@@ -420,6 +444,7 @@ namespace Projecte_1
 
                         }
                     }
+                    //Netejar tots els camps
                     nif.Text = "";
                     nom.Text = "";
                     telf.Text = "";
@@ -431,6 +456,7 @@ namespace Projecte_1
 
         protected void Restar(object sender, EventArgs e)
         {
+            //Restem una unitat al textbox amb la quantitat
             Button btn2 = sender as Button;
             String idboto = btn2.ID;
             int num = Convert.ToInt32(idboto.Split('_').Last());
@@ -451,13 +477,14 @@ namespace Projecte_1
 
         protected void Sumar(object sender, EventArgs e)
         {
-                Button btn1 = sender as Button;
-                String idboto = btn1.ID;
-                int num = Convert.ToInt32(idboto.Split('_').Last());
-                String textbox = "qnt_producte_" + num;
+            //Sumem una unitat al textbox amb la quantitat
+            Button btn1 = sender as Button;
+            String idboto = btn1.ID;
+            int num = Convert.ToInt32(idboto.Split('_').Last());
+            String textbox = "qnt_producte_" + num;
 
-                TextBox tb = (TextBox)Page.FindControl(textbox);
-                tb.Text = ((Convert.ToInt32(tb.Text)) + 1).ToString();
+            TextBox tb = (TextBox)Page.FindControl(textbox);
+            tb.Text = ((Convert.ToInt32(tb.Text)) + 1).ToString();
             
         }
 
@@ -467,5 +494,5 @@ namespace Projecte_1
             comandacorrecta.Visible = false;
         }
 
-        }
+    }
 }
